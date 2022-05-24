@@ -4,7 +4,10 @@ import datetime
 import time
 import subprocess
 
-ProcessName_list=[com.android.camera,]
+ProcessName_list=[
+	'com.android.camera',
+	'android.hardware.camera.provider@2.4-service_64',
+]
 ProcessPid={}
 ProcessThreads={}
 
@@ -26,6 +29,24 @@ def save_file(name,data):
 
 	print("Save file: "+f_name)
 
+def save_excel(name,data):
+	write = pd.ExcelWriter(name+'.xlsx')
+
+	procs={}
+	for proc,threads in data.items():
+		procs[proc]=len(threads)
+		
+		df=pd.DataFrame(threads)
+		df.to_excel(write,sheet_name=proc,index=False,header=False)
+
+	df=pd.DataFrame.from_dict(procs,orient='index')
+	df.to_excel(write,sheet_name='CameraProcessTotal',header=['Threads Num'])
+
+	write.save()
+	write.close()
+	print('Save File: '+name+'.xlsx')
+
+
 def exec_cmd(c):
 	sub = subprocess.Popen(c,stdout=subprocess.PIPE,shell=True)
 	ret_b = sub.stdout.read()
@@ -43,12 +64,13 @@ def loop():
 
 	for proc,pid in ProcessPid.items():
 		data = exec_cmd('adb shell ps -T -p '+pid)
-		if data:	
-			print(data)
+		if data:
+			data = data.split('\r\n')[1:-1]	
+			#print(data)
 			ProcessThreads[proc]=data
 
 	d = datetime.datetime.now()
-	save_file(d.strftime(time_format),ProcessThreads.items())		
+	save_excel(d.strftime(time_format),ProcessThreads)		
 
 
 if __name__ == '__main__':
