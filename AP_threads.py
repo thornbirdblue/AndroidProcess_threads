@@ -10,8 +10,6 @@ ProcessThreads={}
 
 s_file = "LSaveFile"
 
-cmd = "adb shell pidof"
-
 time_format = "%y%m%d%H%M%S"
 
 def mkdir(d):
@@ -37,18 +35,20 @@ def exec_cmd(c):
 
 def loop():
 	for proc in ProcessName_list:
-		data = exec_cmd(cmd)
+		data = exec_cmd('adb shell pidof '+proc)
 		
 		if data:
 			ProcessPid[proc]=data
 			print(proc+' pid: '+data)
 
 	for proc,pid in ProcessPid.items():
-		data = exec_cmd('adb shell ps -e|findstr pid')
-		print(data)	
+		data = exec_cmd('adb shell ps -T -p '+pid)
+		if data:	
+			print(data)
+			ProcessThreads[proc]=data
 
-	#d = datetime.datetime.now()
-	#save_file(d.strftime(time_format),data)		
+	d = datetime.datetime.now()
+	save_file(d.strftime(time_format),ProcessThreads.items())		
 
 
 if __name__ == '__main__':
