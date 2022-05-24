@@ -12,7 +12,6 @@ s_file = "LSaveFile"
 
 cmd = "adb shell pidof"
 
-sleep_interval = 1
 time_format = "%y%m%d%H%M%S"
 
 def mkdir(d):
@@ -37,13 +36,20 @@ def exec_cmd(c):
 	return ret
 
 def loop():
-	while 1:
+	for proc in ProcessName_list:
 		data = exec_cmd(cmd)
 		
-		d = datetime.datetime.now()
-		save_file(d.strftime(time_format),data)		
+		if data:
+			ProcessPid[proc]=data
+			print(proc+' pid: '+data)
 
-		time.sleep(sleep_interval)
+	for proc,pid in ProcessPid.items():
+		data = exec_cmd('adb shell ps -e|findstr pid')
+		print(data)	
+
+	#d = datetime.datetime.now()
+	#save_file(d.strftime(time_format),data)		
+
 
 if __name__ == '__main__':
 	print(time.ctime())
